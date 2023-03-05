@@ -15,18 +15,31 @@ function bindEvents(p) {
         video.play()
     })
 
+    
+    // document.querySelector('#incoming').addEventListener('submit', function (e) {
+    //     e.preventDefault()
+    //     p.signal(JSON.parse(e.target.querySelector('textarea').value))
+    // })
+
 }
 
-document.querySelector('#start').addEventListener('click', function(e) {
+function startPeer (initiator) {
     navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true
     })
     .then(function(stream) {
          p = new SimplePeer({
-            initiator: true,
+            initiator: initiator,
             stream: stream,
-            trickle: false
+            trickle: false,
+            config: {
+                iceServers: [
+                  { urls: 'stun:stun.l.google.com:19302' },
+                  { urls: 'turn:turn.google.com:19305?transport=udp', username: 'your_username', credential: 'your_password' },
+                  { urls: 'turn:turn.google.com:19305?transport=tcp', username: 'your_username', credential: 'your_password' }
+                ]
+              }
             //,config {serveur stun et turn}
         })
         bindEvents(p)
@@ -39,7 +52,14 @@ document.querySelector('#start').addEventListener('click', function(e) {
     })
     .catch(function(error) {
         console.log("Erreur lors de l'accès aux périphériques multimédias: " + error.message);
-    })
+    })  
+}
+
+document.querySelector('#start').addEventListener('click', function(e) {
+    startPeer(true)
+})
+document.querySelector('#receive').addEventListener('click', function(e) {
+    startPeer(false)
 })
 
 document.querySelector('#incoming').addEventListener('submit', function (e) {
@@ -49,7 +69,7 @@ document.querySelector('#incoming').addEventListener('submit', function (e) {
             initiator: false,
             trickle: false
         })
-        bindEvents(p)
     }   
+    bindEvents(p)
     p.signal(JSON.parse(e.target.querySelector('textarea').value))
 })
